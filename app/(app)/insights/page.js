@@ -22,7 +22,7 @@ export default function Insights() {
     <>
       <header className="top"><div><div className="eyebrow">Last 12 weeks</div><h1>{over ? `Over your limit ${over} of 12 weeks` : "Within your limit every week"}</h1></div></header>
       <div className="grid g2">
-        <section className="card span2"><div className="cardhead"><h2>Weekly deposits vs limit</h2><span className="eyebrow">Red = over {money(limit, 0)}</span></div><WeekBars data={weeks} limit={limit} /></section>
+        <section className="card span2"><div className="cardhead"><h2>Weekly deposits vs limit</h2><span className="eyebrow">Dashed line = your {money(limit, 0)} limit · red = over</span></div><WeekBars data={weeks} limit={limit} /></section>
         <section className="card"><div className="cardhead"><h2>Net by app</h2></div><HBars rows={apps.map((a) => ({ k: a.app.name, v: a.net }))} /></section>
         <section className="card"><div className="cardhead"><h2>Share of deposits</h2></div><HBars color="var(--ink2)" rows={apps.map((a) => ({ k: a.app.name, v: a.dep, lab: money(a.dep, 0) }))} /></section>
         <section className="card"><div className="cardhead"><h2>When you deposit</h2><span className="eyebrow">All apps</span></div><Heatmap grid={heatmap(tx)} /></section>

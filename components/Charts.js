@@ -71,7 +71,7 @@ export function WeekBars({ data, limit }) {
         <BarChart data={data} margin={{ top: 16, right: 8, left: 8, bottom: 0 }}>
           <XAxis dataKey="label" {...axis} interval="preserveStartEnd" minTickGap={18} />
           <YAxis hide domain={[0, (max) => Math.max(max, limit * 1.3)]} />
-          <ReferenceLine y={limit} stroke="#0e1311" strokeDasharray="4 4" label={{ value: `Limit ${money(limit, 0)}`, fill: "#0e1311", fontSize: 11, position: "insideTopLeft" }} />
+          <ReferenceLine y={limit} stroke="#0e1311" strokeOpacity={0.55} strokeDasharray="4 4" ifOverflow="extendDomain" />
           <Tooltip cursor={{ fill: "rgba(14,19,17,.04)" }} content={<Tip render={(p) => <><div className="mute">Week of {p.label}</div><b>{money(p.dep)}</b> deposited{p.dep > limit && <div className="neg">{money(p.dep - limit)} over limit</div>}</>} />} />
           <Bar dataKey="dep" radius={[6, 6, 2, 2]} maxBarSize={28}>
             {data.map((d) => <Cell key={d.k} fill={d.dep > limit ? "#e5484d" : "#c3cac6"} />)}
