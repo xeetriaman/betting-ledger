@@ -1,34 +1,36 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, ScanFace, Settings, X } from "lucide-react";
-import { APPS } from "@/lib/apps";
+import { ScanFace, X } from "lucide-react";
 import { useLedger } from "@/lib/ledger";
-import { fmtDay, money, signed, todayKey, tone } from "@/lib/format";
+import { fmtDay, money, signed, todayKey } from "@/lib/format";
 import { byApp, cumulative, dated, inRange, monthly, thisWeek, totals } from "@/lib/stats";
 import { friendlyWebAuthnError, hasPasskeyHere, passkeySupported, registerPasskey } from "@/lib/passkey";
 import { NetArea } from "@/components/Charts";
-import TxList from "@/components/TxList";
-import { Badge, Seg, Skeleton } from "@/components/ui";
+import DataTable from "@/components/DataTable";
+import TxTable from "@/components/TxTable";
+import { AppTag, Button, Kpis, Panel, Segmented, Skeleton, cn, toneOf } from "@/components/ui";
 
-const RANGES = [["all", "All time"], ["month", "Month"], ["30d", "30D"], ["week", "Week"]];
+const RANGES = [["all", "All"], ["month", "MTD"], ["30d", "30D"], ["week", "WTD"]];
 
-function FaceBanner() {
+function FaceStrip() {
   const [show, setShow] = useState(false);
   const [msg, setMsg] = useState("");
   useEffect(() => { try { setShow(passkeySupported() && !hasPasskeyHere() && localStorage.getItem("ledger.faceid.skip") !== "1"); } catch {} }, []);
   if (!show) return null;
   return (
-    <div className="banner">
-      <span className="logo" style={{width:40,height:40,borderRadius:12}}><ScanFace size={22} /></span>
-      <div className="grow"><b>Turn on Face ID</b><span>{msg || "Sign in instantly next time — no password."}</span></div>
-      <button className="btn primary" style={{ height: 38, padding: "0 14px", fontSize: 14 }} onClick={async () => { try { await registerPasskey(); setShow(false); } catch (e) { setMsg(friendlyWebAuthnError(e)); } }}>Turn on</button>
-      <button className="iconbtn" style={{ width: 34, height: 34 }} aria-label="Not now" onClick={() => { try { localStorage.setItem("ledger.faceid.skip", "1"); } catch {} setShow(false); }}><X size={15} /></button>
+    <div className="flex items-center gap-3 border border-line rounded-[4px] px-3 py-2.5 mb-4 bg-soft">
+      <ScanFace size={18} />
+      <span className="flex-1 text-[13px]">{msg || "Turn on Face ID to sign in without a password."}</span>
+      <Button size="sm" onClick={async () => { try { await registerPasskey(); setShow(false); } catch (e) { setMsg(friendlyWebAuthnError(e)); } }}>Turn on</Button>
+      <button aria-label="Dismiss" className="text-mute" onClick={() => { try { localStorage.setItem("ledger.faceid.skip", "1"); } catch {} setShow(false); }}><X size={16} /></button>
     </div>
   );
 }
 
-export default function Home() {
+export default function Overview() {
+  const router = useRouter();
   const { tx, limit, loading, error } = useLedger();
   const [range, setRange] = useState("all");
   const scoped = useMemo(() => inRange(tx, range), [tx, range]);
@@ -37,80 +39,66 @@ export default function Home() {
   const apps = useMemo(() => byApp(tx), [tx]);
   const week = useMemo(() => thisWeek(tx), [tx]);
   const months = useMemo(() => monthly(dated(tx)), [tx]);
-  const thisM = months[months.length - 1], prevM = months[months.length - 2];
-  const totalDep = apps.reduce((s, a) => s + a.dep, 0);
+  const mtd = months[months.length - 1];
+  const allDep = apps.reduce((s, a) => s + a.dep, 0) || 1;
   const today = todayKey();
-  const dayMax = Math.max(limit / 3, ...week.days.map((d) => d.dep));
-  const pct = limit > 0 ? Math.min(100, (week.total / limit) * 100) : 100;
 
-  if (loading) return <div className="grid"><Skeleton h={300} /><Skeleton h={140} /><Skeleton h={220} /></div>;
+  const appCols = useMemo(() => [
+    { id: "app", header: "App", accessorFn: (r) => r.app.name, cell: ({ row: { original: r } }) => <span className="inline-flex items-center gap-2 font-medium"><AppTag app={r.app.id} />{r.app.name}</span> },
+    { id: "n", header: "Deps", accessorKey: "nDep", meta: { align: "right", className: "hidden md:table-cell" }, cell: ({ getValue }) => <span className="num text-sub">{getValue()}</span> },
+    { id: "in", header: "In", accessorKey: "dep", meta: { align: "right" }, cell: ({ getValue }) => <span className="num">{money(getValue(), 0)}</span> },
+    { id: "out", header: "Out", accessorKey: "wd", meta: { align: "right", className: "hidden sm:table-cell" }, cell: ({ getValue }) => <span className="num">{money(getValue(), 0)}</span> },
+    { id: "net", header: "Net", accessorKey: "net", meta: { align: "right" }, cell: ({ getValue }) => <span className={cn("num font-medium", toneOf(getValue()))}>{signed(getValue())}</span> },
+    { id: "share", header: "% In", accessorFn: (r) => r.dep, meta: { align: "right", className: "hidden md:table-cell w-[140px]" },
+      cell: ({ getValue }) => { const p = (getValue() / allDep) * 100; return <span className="inline-flex items-center gap-2 justify-end w-full"><span className="h-1.5 w-16 bg-soft border border-line rounded-[2px] overflow-hidden"><i className="block h-full bg-ink" style={{ width: `${p}%` }} /></span><span className="num text-sub w-9">{p.toFixed(0)}%</span></span>; } },
+  ], [allDep]);
+
+  if (loading) return <div className="grid gap-4"><Skeleton className="h-24" /><Skeleton className="h-72" /><Skeleton className="h-60" /></div>;
+  const dayMax = Math.max(limit / 2, ...week.days.map((d) => d.dep), 1);
 
   return (
     <>
-      <header className="top">
-        <div><div className="eyebrow">{fmtDay(today, { weekday: "long", day: "numeric", month: "long" })}</div><h1>Overview</h1></div>
-        <Link href="/settings" className="iconbtn" aria-label="Settings"><Settings size={19} /></Link>
-      </header>
-      {error && <div className="warnbox">{error}</div>}
-      <FaceBanner />
+      <div className="flex items-end justify-between gap-3 mb-4">
+        <div><div className="label mb-1.5">{fmtDay(today, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div><h1 className="text-[22px] font-semibold tracking-tight">Overview</h1></div>
+        <Segmented value={range} onChange={setRange} options={RANGES} />
+      </div>
+      {error && <div className="border border-down/30 bg-downbg text-down rounded-[4px] p-2.5 mb-4 text-[13px]">{error}</div>}
+      <FaceStrip />
 
-      <section className={`hero ${t.net < 0 ? "down" : "up"}`}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <span className="eyebrow">Net result · {RANGES.find((r) => r[0] === range)[1].toLowerCase()}</span>
-          <Seg value={range} onChange={setRange} options={RANGES} />
-        </div>
-        <div className={`big ${tone(t.net)}`}>{signed(t.net)}</div>
-        <div className="meta"><span>Deposited <b className="num">{money(t.dep)}</b></span><span>Withdrawn <b className="num">{money(t.wd)}</b></span><span className="mute">{t.nDep + t.nWd} entries</span></div>
+      <Kpis items={[
+        { label: "Net P/L", value: signed(t.net), tone: toneOf(t.net), sub: `${t.nDep + t.nWd} entries` },
+        { label: "Deposited", value: money(t.dep), sub: `${t.nDep} deposits` },
+        { label: "Withdrawn", value: money(t.wd), sub: `${t.nWd} withdrawals` },
+        { label: "Week / limit", value: `${money(week.total, 0)} / ${money(limit, 0)}`, tone: week.total > limit ? "text-down" : "", sub: week.total > limit ? `${money(week.total - limit)} over` : `${money(limit - week.total)} left` },
+        { label: "Month to date", value: mtd ? signed(mtd.net) : "—", tone: mtd ? toneOf(mtd.net) : "", sub: mtd ? `${money(mtd.dep, 0)} in · ${money(mtd.wd, 0)} out` : "" },
+      ]} />
+
+      <Panel className="mt-4" title="Running P/L" right={<span className="num text-[12px] text-mute">{curve[0] ? `${curve[0].label} – ${curve[curve.length - 1].label}` : ""}</span>}>
         <NetArea data={curve} />
-      </section>
+      </Panel>
 
-      <div className="grid g2" style={{ marginTop: 14 }}>
-        <section className="card">
-          <div className="cardhead"><h2>This week</h2><span className="eyebrow">Limit {money(limit, 0)}</span></div>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
-            <span className="num" style={{ fontSize: 30, letterSpacing: "-0.04em" }}>{money(week.total)}</span>
-            <span className={week.total > limit ? "neg" : "mute"} style={{ fontSize: 13, fontWeight: 550 }}>{week.total > limit ? `${money(week.total - limit)} over` : `${money(limit - week.total)} left`}</span>
-          </div>
-          <div className={`meter ${week.total > limit ? "over" : ""}`} style={{ marginTop: 10 }}><i style={{ width: `${pct}%` }} /></div>
-          <div className="days">
+      <div className="grid gap-4 mt-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <Panel title="Apps" right={<Link href="/insights" className="text-[12px] text-sub hover:text-ink">Compare →</Link>} flush>
+          <DataTable columns={appCols} data={apps} initialSort={[{ id: "in", desc: true }]} onRowClick={(r) => router.push(`/apps/${r.app.slug}`)} />
+        </Panel>
+        <Panel title="This week" right={<span className={cn("num text-[12px]", week.total > limit ? "text-down" : "text-mute")}>{money(week.total)}</span>}>
+          <div className="grid grid-cols-7 gap-1.5 items-end h-28">
             {week.days.map((d, i) => (
-              <div key={d.k} title={`${fmtDay(d.k)}: ${money(d.dep)}`}>
-                <span className={`bar ${d.dep ? "has" : ""} ${d.dep > limit ? "over" : ""} ${d.k === today ? "today" : ""}`} style={{ height: Math.max(4, Math.round((d.dep / dayMax) * 44)) }} />
-                <small>{"MTWTFSS"[i]}</small>
+              <div key={d.k} className="flex flex-col items-center justify-end h-full gap-1" title={`${fmtDay(d.k)} ${money(d.dep)}`}>
+                <span className="num text-[10px] text-mute">{d.dep ? Math.round(d.dep) : ""}</span>
+                <span className={cn("w-full max-w-7 rounded-[2px]", d.dep > limit ? "bg-down" : d.dep ? "bg-zinc-400" : "bg-soft border border-line")} style={{ height: Math.max(3, Math.round((d.dep / dayMax) * 72)) }} />
+                <span className={cn("text-[10.5px]", d.k === today ? "text-ink font-semibold" : "text-mute")}>{"MTWTFSS"[i]}</span>
               </div>
             ))}
           </div>
-        </section>
-
-        <section className="card">
-          <div className="cardhead"><h2>{thisM ? `This month` : "Months"}</h2>{prevM && <span className="eyebrow">vs last month</span>}</div>
-          {thisM ? (
-            <>
-              <div className="num" style={{ fontSize: 30, letterSpacing: "-0.04em" }}><span className={tone(thisM.net)}>{signed(thisM.net)}</span></div>
-              <div className="row"><span className="grow mute">Deposited</span><span className="num">{money(thisM.dep)}</span>{prevM && <span className={`num ${thisM.dep > prevM.dep ? "neg" : "pos"}`} style={{ fontSize: 12.5, width: 74, textAlign: "right" }}>{thisM.dep > prevM.dep ? "▲" : "▼"} {money(Math.abs(thisM.dep - prevM.dep), 0)}</span>}</div>
-              <div className="row"><span className="grow mute">Withdrawn</span><span className="num">{money(thisM.wd)}</span>{prevM && <span className="num mute" style={{ fontSize: 12.5, width: 74, textAlign: "right" }}>{money(prevM.wd, 0)} prev</span>}</div>
-            </>
-          ) : <p className="mute">No entries yet.</p>}
-        </section>
+          <div className="mt-3 h-1.5 bg-soft border border-line rounded-[2px] overflow-hidden"><i className={cn("block h-full", week.total > limit ? "bg-down" : "bg-up")} style={{ width: `${Math.min(100, (week.total / (limit || 1)) * 100)}%` }} /></div>
+          <div className="flex justify-between text-[12px] text-mute mt-1.5"><span>Mon–Sun</span><span className="num">Limit {money(limit, 0)}</span></div>
+        </Panel>
       </div>
 
-      <div className="cardhead" style={{ margin: "26px 2px 12px" }}><h2 style={{ fontSize: 17 }}>Your apps</h2><Link className="link" href="/insights">Compare <ChevronRight size={15} /></Link></div>
-      <div className="grid g3">
-        {apps.map(({ app, dep, wd, net, nDep }) => (
-          <Link key={app.id} href={`/apps/${app.slug}`} className="appcard">
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Badge app={app.id} />
-              <div className="grow"><div style={{ fontWeight: 600 }}>{app.name}</div><div className="mute" style={{ fontSize: 12.5 }}>{nDep} deposits</div></div>
-              <span className={`num ${tone(net)}`} style={{ fontSize: 17 }}>{signed(net)}</span>
-            </div>
-            <div className="share" title={`${Math.round((dep / totalDep) * 100)}% of all deposits`}><i style={{ width: `${(dep / totalDep) * 100}%`, background: app.bg }} /></div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5 }} className="mute"><span>In <span className="num">{money(dep, 0)}</span></span><span>Out <span className="num">{money(wd, 0)}</span></span></div>
-          </Link>
-        ))}
-      </div>
-
-      <div className="cardhead" style={{ margin: "26px 2px 0" }}><h2 style={{ fontSize: 17 }}>Recent</h2><Link className="link" href="/activity">See all <ChevronRight size={15} /></Link></div>
-      <TxList rows={tx} limit={8} />
+      <Panel className="mt-4" title="Recent activity" right={<Link href="/activity" className="text-[12px] text-sub hover:text-ink">All →</Link>} flush>
+        <TxTable rows={dated(tx)} limit={10} />
+      </Panel>
     </>
   );
 }

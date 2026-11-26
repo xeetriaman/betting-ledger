@@ -1,13 +1,18 @@
 "use client";
 import { useMemo } from "react";
-import { Clock, CalendarDays, Repeat, Flame, TrendingUp } from "lucide-react";
 import { useLedger } from "@/lib/ledger";
-import { fmtMonth, money, signed, tone } from "@/lib/format";
+import { fmtMonth, money, signed } from "@/lib/format";
 import { byApp, dated, heatmap, monthly, patterns, weekly } from "@/lib/stats";
-import { HBars, Heatmap, MonthBars, WeekBars } from "@/components/Charts";
-import { Skeleton } from "@/components/ui";
+import { Bars, Heatmap, MonthBars, WeekBars } from "@/components/Charts";
+import DataTable from "@/components/DataTable";
+import { Kpis, Panel, Skeleton, cn, toneOf } from "@/components/ui";
 
-const ICONS = { late: Clock, day: CalendarDays, chase: Repeat, max: Flame, streak: TrendingUp };
+const monthCols = [
+  { id: "m", header: "Month", accessorKey: "k", cell: ({ getValue }) => fmtMonth(getValue(), true) },
+  { id: "in", header: "In", accessorKey: "dep", meta: { align: "right" }, cell: ({ getValue }) => <span className="num">{money(getValue())}</span> },
+  { id: "out", header: "Out", accessorKey: "wd", meta: { align: "right" }, cell: ({ getValue }) => <span className="num">{money(getValue())}</span> },
+  { id: "net", header: "Net", accessorKey: "net", meta: { align: "right" }, cell: ({ getValue }) => <span className={cn("num font-medium", toneOf(getValue()))}>{signed(getValue())}</span> },
+];
 
 export default function Insights() {
   const { tx, limit, loading } = useLedger();
@@ -15,28 +20,33 @@ export default function Insights() {
   const months = useMemo(() => monthly(dated(tx)), [tx]);
   const apps = useMemo(() => byApp(tx), [tx]);
   const pats = useMemo(() => patterns(tx), [tx]);
-  if (loading) return <Skeleton h={400} />;
+  if (loading) return <Skeleton className="h-96" />;
   const over = weeks.filter((w) => w.dep > limit).length;
+  const avg = weeks.reduce((s, w) => s + w.dep, 0) / weeks.length;
+  const late = pats.find((p) => p.k === "late");
 
   return (
     <>
-      <header className="top"><div><div className="eyebrow">Last 12 weeks</div><h1>{over ? `Over your limit ${over} of 12 weeks` : "Within your limit every week"}</h1></div></header>
-      <div className="grid g2">
-        <section className="card span2"><div className="cardhead"><h2>Weekly deposits vs limit</h2><span className="eyebrow">Dashed line = your {money(limit, 0)} limit · red = over</span></div><WeekBars data={weeks} limit={limit} /></section>
-        <section className="card"><div className="cardhead"><h2>Net by app</h2></div><HBars rows={apps.map((a) => ({ k: a.app.name, v: a.net }))} /></section>
-        <section className="card"><div className="cardhead"><h2>Share of deposits</h2></div><HBars color="var(--ink2)" rows={apps.map((a) => ({ k: a.app.name, v: a.dep, lab: money(a.dep, 0) }))} /></section>
-        <section className="card"><div className="cardhead"><h2>When you deposit</h2><span className="eyebrow">All apps</span></div><Heatmap grid={heatmap(tx)} /></section>
-        <section className="card"><div className="cardhead"><h2>Patterns</h2></div>
-          {pats.map((p) => { const I = ICONS[p.k]; return <div className="insight" key={p.k}><span className="ic"><I size={17} /></span><div><b>{p.title}</b><span>{p.body}</span></div></div>; })}
-        </section>
-        <section className="card span2"><div className="cardhead"><h2>Month by month</h2></div><MonthBars data={months} />
-          <div style={{ marginTop: 10 }}>
-            {[...months].reverse().map((m) => (
-              <div className="row" key={m.k}><span className="grow">{fmtMonth(m.k, true)}</span><span className="num mute" style={{ fontSize: 13 }}>{money(m.dep, 0)} in · {money(m.wd, 0)} out</span><span className={`num ${tone(m.net)}`} style={{ width: 96, textAlign: "right" }}>{signed(m.net)}</span></div>
-            ))}
-          </div>
-        </section>
+      <h1 className="text-[22px] font-semibold tracking-tight mb-4">Insights</h1>
+      <Kpis cols="md:grid-cols-4" items={[
+        { label: "Weeks over limit", value: `${over} / 12`, tone: over ? "text-down" : "text-up" },
+        { label: "Avg weekly deposit", value: money(avg), sub: `Limit ${money(limit, 0)}` },
+        { label: "Biggest week", value: money(Math.max(...weeks.map((w) => w.dep))) },
+        { label: "Late-night share", value: late ? late.title.split("%")[0] + "%" : "—", sub: "10pm – 5am" },
+      ]} />
+      <Panel className="mt-4" title="Weekly deposits · last 12 weeks" right={<span className="text-[11px] text-mute">Dashed = {money(limit, 0)} limit</span>}><WeekBars data={weeks} limit={limit} /></Panel>
+      <div className="grid gap-4 mt-4 lg:grid-cols-2">
+        <Panel title="Net P/L by app"><Bars rows={apps.map((a) => ({ k: a.app.name, v: a.net }))} /></Panel>
+        <Panel title="Deposits by app"><Bars color="#3f3f46" rows={apps.map((a) => ({ k: a.app.name, v: a.dep, lab: money(a.dep, 0) }))} /></Panel>
+        <Panel title="When you deposit · all apps"><Heatmap grid={heatmap(tx)} /></Panel>
+        <Panel title="Patterns" flush>
+          <div className="divide-y divide-line">{pats.map((p) => <div key={p.k} className="p-3"><div className="font-medium text-[13.5px]">{p.title}</div><div className="text-[12.5px] text-mute mt-0.5">{p.body}</div></div>)}</div>
+        </Panel>
       </div>
+      <Panel className="mt-4" title="Month by month" flush>
+        <div className="p-3"><MonthBars data={months} /></div>
+        <div className="border-t border-line"><DataTable columns={monthCols} data={[...months].reverse()} /></div>
+      </Panel>
     </>
   );
 }

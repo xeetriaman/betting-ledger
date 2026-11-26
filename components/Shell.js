@@ -1,49 +1,40 @@
 "use client";
-import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Home, ListOrdered, Plus, Settings } from "lucide-react";
-import { APPS } from "@/lib/apps";
+import { Toaster } from "sonner";
+import { BarChart3, Home, List, Plus, Settings } from "lucide-react";
 import { useLedger } from "@/lib/ledger";
-import QuickAdd from "./QuickAdd";
-import { Badge } from "./ui";
+import EntryDrawer from "./EntryDrawer";
+import { Button, cn } from "./ui";
 
-const NAV = [["/", "Home", Home], ["/activity", "Activity", ListOrdered], ["/insights", "Insights", BarChart3], ["/settings", "Settings", Settings]];
+const NAV = [["/", "Overview", Home], ["/activity", "Activity", List], ["/insights", "Insights", BarChart3], ["/settings", "Settings", Settings]];
 
-export function Logo() {
-  return <span className="logo" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12.5 6 8l3 3 5-6.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>;
-}
-
-function Toast() {
-  const { toast, setToast } = useLedger();
-  useEffect(() => { if (!toast) return; const id = setTimeout(() => setToast(null), 5000); return () => clearTimeout(id); }, [toast, setToast]);
-  if (!toast) return null;
-  return <div className="toast" role="status">{toast.msg}{toast.undo && <button onClick={() => { const u = toast.undo; setToast(null); u(); }}>Undo</button>}</div>;
-}
+export const Wordmark = () => <span className="num font-semibold tracking-[0.18em] text-[13px]">LEDGER</span>;
 
 export default function Shell({ children }) {
   const path = usePathname();
   const { setSheet } = useLedger();
-  const on = (href) => (href === "/" ? path === "/" : path.startsWith(href));
+  const on = (href) => (href === "/" ? path === "/" || path.startsWith("/apps") : path.startsWith(href));
   return (
-    <div className="shell">
-      <aside className="side">
-        <div className="wordmark"><Logo />Ledger</div>
-        {NAV.slice(0, 3).map(([href, l, I]) => <Link key={href} href={href} className={`nav ${on(href) ? "on" : ""}`}><I size={18} />{l}</Link>)}
-        <div className="sub">Apps</div>
-        {APPS.map((a) => <Link key={a.id} href={`/apps/${a.slug}`} className={`nav ${on(`/apps/${a.slug}`) ? "on" : ""}`}><Badge app={a.id} size="sm" />{a.name}</Link>)}
-        <div style={{ flex: 1 }} />
-        <Link href="/settings" className={`nav ${on("/settings") ? "on" : ""}`}><Settings size={18} />Settings</Link>
-        <button className="btn primary add" onClick={() => setSheet({ mode: "add" })}><Plus size={18} />Add money</button>
-      </aside>
-      <main className="main">{children}</main>
-      <nav className="tabbar" aria-label="Main">
-        {NAV.slice(0, 2).map(([href, l, I]) => <Link key={href} href={href} className={on(href) ? "on" : ""}><I size={21} />{l}</Link>)}
-        <button className="fab" onClick={() => setSheet({ mode: "add" })} aria-label="Add money"><Plus size={26} strokeWidth={2.4} /></button>
-        {NAV.slice(2).map(([href, l, I]) => <Link key={href} href={href} className={on(href) ? "on" : ""}><I size={21} />{l}</Link>)}
+    <div className="min-h-dvh">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-line pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto max-w-[1200px] h-12 px-4 md:px-6 flex items-center gap-6">
+          <Link href="/"><Wordmark /></Link>
+          <nav className="hidden md:flex items-stretch h-12 gap-5 text-[13.5px]">
+            {NAV.map(([href, l]) => <Link key={href} href={href} className={cn("flex items-center border-b-2 -mb-px", on(href) ? "border-ink text-ink font-medium" : "border-transparent text-mute hover:text-ink")}>{l}</Link>)}
+          </nav>
+          <div className="flex-1" />
+          <Button size="sm" onClick={() => setSheet({ mode: "add" })}><Plus size={15} />New entry</Button>
+        </div>
+      </header>
+      <main className="mx-auto max-w-[1200px] px-4 md:px-6 pt-5 pb-[calc(84px+env(safe-area-inset-bottom))] md:pb-12">{children}</main>
+      <nav className="md:hidden fixed inset-x-0 bottom-0 z-30 bg-white border-t border-line grid grid-cols-5 pb-[env(safe-area-inset-bottom)]" aria-label="Main">
+        {NAV.slice(0, 2).map(([href, l, I]) => <Link key={href} href={href} className={cn("h-14 flex flex-col items-center justify-center gap-0.5 text-[10.5px]", on(href) ? "text-ink font-medium" : "text-mute")}><I size={19} />{l}</Link>)}
+        <button onClick={() => setSheet({ mode: "add" })} aria-label="New entry" className="h-14 grid place-items-center"><span className="h-10 w-10 rounded-[4px] bg-ink text-white grid place-items-center"><Plus size={22} /></span></button>
+        {NAV.slice(2).map(([href, l, I]) => <Link key={href} href={href} className={cn("h-14 flex flex-col items-center justify-center gap-0.5 text-[10.5px]", on(href) ? "text-ink font-medium" : "text-mute")}><I size={19} />{l}</Link>)}
       </nav>
-      <QuickAdd />
-      <Toast />
+      <EntryDrawer />
+      <Toaster position="bottom-center" offset={{ bottom: 90 }} mobileOffset={{ bottom: 90 }} toastOptions={{ className: "!rounded-[4px] !font-sans" }} />
     </div>
   );
 }
