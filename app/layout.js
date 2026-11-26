@@ -7,10 +7,10 @@ const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", dis
 export const metadata = {
   title: "Ledger",
   description: "Personal betting money ledger",
-  appleWebApp: { capable: true, title: "Ledger", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "Ledger", statusBarStyle: "default" },
   robots: { index: false, follow: false },
 };
-export const viewport = { themeColor: "#07090a", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport = { themeColor: "#f5f6f4", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }) {
   return (

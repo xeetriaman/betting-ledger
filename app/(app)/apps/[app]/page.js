@@ -41,7 +41,7 @@ export default function AppPage() {
         <Seg value={range} onChange={setRange} options={RANGES} />
       </header>
 
-      <section className="hero" style={{ paddingBottom: 18 }}>
+      <section className={`hero ${t.net < 0 ? "down" : "up"}`} style={{ paddingBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <Badge app={app.id} size="lg" />
           <div className="grow"><h1 style={{ margin: 0, fontSize: 24, letterSpacing: "-0.03em" }}>{site || app.name}</h1><div className="mute" style={{ fontSize: 13 }}>{t.nDep} deposits · {t.nWd} withdrawals</div></div>
@@ -65,7 +65,7 @@ export default function AppPage() {
         <section className="card" style={{ marginTop: 14 }}>
           <div className="cardhead"><h2>Promo apps</h2>{site && <button className="link" onClick={() => setSite("")}>Show all</button>}</div>
           {sites.map((s) => (
-            <div key={s.name} className="row tap" role="button" tabIndex={0} onClick={() => setSite(site === s.name ? "" : s.name)} style={site === s.name ? { background: "rgba(198,244,50,.06)" } : undefined}>
+            <div key={s.name} className="row tap" role="button" tabIndex={0} onClick={() => setSite(site === s.name ? "" : s.name)} style={site === s.name ? { background: "var(--card2)" } : undefined}>
               <Badge app="Promo" name={s.name} size="sm" />
               <div className="grow"><div className="t">{s.name}</div><div className="s">In {money(s.dep, 0)} · Out {money(s.wd, 0)}</div></div>
               <span className={`num ${tone(s.net)}`}>{signed(s.net)}</span>

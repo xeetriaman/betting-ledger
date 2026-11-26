@@ -29,7 +29,7 @@ export default function Activity() {
       <div className="searchwrap"><Search size={18} /><input className="search" placeholder="Search app, note or amount" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search" /></div>
       <div className="chips" style={{ margin: "12px 0 4px" }}>
         <button className={`chip ${!app ? "on" : ""}`} onClick={() => setApp("")}>All apps</button>
-        {APPS.map((a) => <button key={a.id} className={`chip ${app === a.id ? "on" : ""}`} onClick={() => setApp(app === a.id ? "" : a.id)}><i style={{ background: a.bg === "#23292D" ? "#c6f432" : a.bg }} />{a.name}</button>)}
+        {APPS.map((a) => <button key={a.id} className={`chip ${app === a.id ? "on" : ""}`} onClick={() => setApp(app === a.id ? "" : a.id)}><i style={{ background: a.bg }} />{a.name}</button>)}
       </div>
       <div className="stats" style={{ marginTop: 12 }}>
         <div className="stat"><span className="eyebrow">Entries</span><b>{rows.length}</b></div>

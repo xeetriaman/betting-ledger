@@ -4,7 +4,7 @@ import { Area, AreaChart, Bar, BarChart, Cell, ReferenceLine, ResponsiveContaine
 import { money, signed, fmtMonth } from "@/lib/format";
 import { BLOCKS } from "@/lib/stats";
 
-const axis = { stroke: "transparent", tick: { fill: "#7f8a86", fontSize: 11 }, tickLine: false };
+const axis = { stroke: "transparent", tick: { fill: "#8a938f", fontSize: 11 }, tickLine: false };
 
 function Tip({ active, payload, render }) {
   if (!active || !payload?.length) return null;
@@ -23,18 +23,18 @@ export function NetArea({ data, height = 190 }) {
         <AreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
           <defs>
             <linearGradient id={id + "s"} x1="0" y1="0" x2="0" y2="1">
-              <stop offset={0} stopColor="#3ddc97" /><stop offset={zero} stopColor="#3ddc97" />
-              <stop offset={zero} stopColor="#ff5c4a" /><stop offset={1} stopColor="#ff5c4a" />
+              <stop offset={0} stopColor="#0b9b61" /><stop offset={zero} stopColor="#0b9b61" />
+              <stop offset={zero} stopColor="#e5484d" /><stop offset={1} stopColor="#e5484d" />
             </linearGradient>
             <linearGradient id={id + "f"} x1="0" y1="0" x2="0" y2="1">
-              <stop offset={0} stopColor="#3ddc97" stopOpacity={0.22} /><stop offset={zero} stopColor="#3ddc97" stopOpacity={0.02} />
-              <stop offset={zero} stopColor="#ff5c4a" stopOpacity={0.02} /><stop offset={1} stopColor="#ff5c4a" stopOpacity={0.22} />
+              <stop offset={0} stopColor="#0b9b61" stopOpacity={0.16} /><stop offset={zero} stopColor="#0b9b61" stopOpacity={0.02} />
+              <stop offset={zero} stopColor="#e5484d" stopOpacity={0.02} /><stop offset={1} stopColor="#e5484d" stopOpacity={0.16} />
             </linearGradient>
           </defs>
           <XAxis dataKey="label" {...axis} minTickGap={40} />
           <YAxis hide domain={["dataMin", "dataMax"]} />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,.18)" strokeDasharray="3 4" />
-          <Tooltip cursor={{ stroke: "rgba(255,255,255,.2)" }} content={<Tip render={(p) => <><div className="mute">{p.label}</div><b className={p.net < 0 ? "neg" : "pos"}>{signed(p.net)}</b> running net<div className="mute">{signed(p.day)} that day</div></>} />} />
+          <ReferenceLine y={0} stroke="rgba(14,19,17,.2)" strokeDasharray="3 4" />
+          <Tooltip cursor={{ stroke: "rgba(14,19,17,.2)" }} content={<Tip render={(p) => <><div className="mute">{p.label}</div><b className={p.net < 0 ? "neg" : "pos"}>{signed(p.net)}</b> running net<div className="mute">{signed(p.day)} that day</div></>} />} />
           <Area type="monotone" dataKey="net" stroke={`url(#${id}s)`} strokeWidth={2.2} fill={`url(#${id}f)`} baseValue={0} />
         </AreaChart>
       </ResponsiveContainer>
@@ -51,14 +51,14 @@ export function MonthBars({ data }) {
         <BarChart data={rows} margin={{ top: 8, right: 8, left: 8, bottom: 0 }} barGap={3}>
           <XAxis dataKey="label" {...axis} />
           <YAxis hide />
-          <Tooltip cursor={{ fill: "rgba(255,255,255,.04)" }} content={<Tip render={(p) => <><div className="mute">{fmtMonth(p.k, true)}</div><div>In <b>{money(p.dep)}</b></div><div>Out <b>{money(p.wd)}</b></div><div>Net <b className={p.net < 0 ? "neg" : "pos"}>{signed(p.net)}</b></div></>} />} />
-          <Bar dataKey="dep" name="Deposited" fill="#ff5c4a" radius={[6, 6, 2, 2]} maxBarSize={26} />
-          <Bar dataKey="wd" name="Withdrawn" fill="#3ddc97" radius={[6, 6, 2, 2]} maxBarSize={26} />
+          <Tooltip cursor={{ fill: "rgba(14,19,17,.04)" }} content={<Tip render={(p) => <><div className="mute">{fmtMonth(p.k, true)}</div><div>In <b>{money(p.dep)}</b></div><div>Out <b>{money(p.wd)}</b></div><div>Net <b className={p.net < 0 ? "neg" : "pos"}>{signed(p.net)}</b></div></>} />} />
+          <Bar dataKey="dep" name="Deposited" fill="#e5484d" radius={[6, 6, 2, 2]} maxBarSize={26} />
+          <Bar dataKey="wd" name="Withdrawn" fill="#0b9b61" radius={[6, 6, 2, 2]} maxBarSize={26} />
         </BarChart>
       </ResponsiveContainer>
-      <div style={{ display: "flex", gap: 16, justifyContent: "center", fontSize: 12, color: "#9aa4a0", marginTop: -6 }}>
-        <span><i style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: "#ff5c4a", marginRight: 6 }} />Deposited</span>
-        <span><i style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: "#3ddc97", marginRight: 6 }} />Withdrawn</span>
+      <div style={{ display: "flex", gap: 16, justifyContent: "center", fontSize: 12, color: "#7a8580", marginTop: -6 }}>
+        <span><i style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: "#e5484d", marginRight: 6 }} />Deposited</span>
+        <span><i style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: "#0b9b61", marginRight: 6 }} />Withdrawn</span>
       </div>
     </div>
   );
@@ -71,10 +71,10 @@ export function WeekBars({ data, limit }) {
         <BarChart data={data} margin={{ top: 16, right: 8, left: 8, bottom: 0 }}>
           <XAxis dataKey="label" {...axis} interval="preserveStartEnd" minTickGap={18} />
           <YAxis hide domain={[0, (max) => Math.max(max, limit * 1.3)]} />
-          <ReferenceLine y={limit} stroke="#c6f432" strokeDasharray="4 4" label={{ value: `Limit ${money(limit, 0)}`, fill: "#c6f432", fontSize: 11, position: "insideTopLeft" }} />
-          <Tooltip cursor={{ fill: "rgba(255,255,255,.04)" }} content={<Tip render={(p) => <><div className="mute">Week of {p.label}</div><b>{money(p.dep)}</b> deposited{p.dep > limit && <div className="neg">{money(p.dep - limit)} over limit</div>}</>} />} />
+          <ReferenceLine y={limit} stroke="#0e1311" strokeDasharray="4 4" label={{ value: `Limit ${money(limit, 0)}`, fill: "#0e1311", fontSize: 11, position: "insideTopLeft" }} />
+          <Tooltip cursor={{ fill: "rgba(14,19,17,.04)" }} content={<Tip render={(p) => <><div className="mute">Week of {p.label}</div><b>{money(p.dep)}</b> deposited{p.dep > limit && <div className="neg">{money(p.dep - limit)} over limit</div>}</>} />} />
           <Bar dataKey="dep" radius={[6, 6, 2, 2]} maxBarSize={28}>
-            {data.map((d) => <Cell key={d.k} fill={d.dep > limit ? "#ff5c4a" : "#c4cbc8"} />)}
+            {data.map((d) => <Cell key={d.k} fill={d.dep > limit ? "#e5484d" : "#c3cac6"} />)}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -102,7 +102,7 @@ export function Heatmap({ grid }) {
             return (
               <button key={d + "-" + b} className={`c ${sel && sel[0] === d && sel[1] === b ? "on" : ""}`} aria-label={`${DAYL[d]} ${BLOCKS[b]}: ${c.n} deposits, ${money(c.sum)}`}
                 onClick={() => setSel([d, b])} onMouseEnter={() => setSel([d, b])}
-                style={{ background: c.n ? `rgba(255, 92, 74, ${0.12 + a * 0.85})` : undefined }}>{c.n || ""}</button>
+                style={{ background: c.n ? `rgba(229, 72, 77, ${0.1 + a * 0.85})` : undefined }}>{c.n || ""}</button>
             );
           }),
         ])}

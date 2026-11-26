@@ -20,7 +20,7 @@ function FaceBanner() {
   if (!show) return null;
   return (
     <div className="banner">
-      <ScanFace size={26} color="#c6f432" />
+      <span className="logo" style={{width:40,height:40,borderRadius:12}}><ScanFace size={22} /></span>
       <div className="grow"><b>Turn on Face ID</b><span>{msg || "Sign in instantly next time — no password."}</span></div>
       <button className="btn primary" style={{ height: 38, padding: "0 14px", fontSize: 14 }} onClick={async () => { try { await registerPasskey(); setShow(false); } catch (e) { setMsg(friendlyWebAuthnError(e)); } }}>Turn on</button>
       <button className="iconbtn" style={{ width: 34, height: 34 }} aria-label="Not now" onClick={() => { try { localStorage.setItem("ledger.faceid.skip", "1"); } catch {} setShow(false); }}><X size={15} /></button>
@@ -54,7 +54,7 @@ export default function Home() {
       {error && <div className="warnbox">{error}</div>}
       <FaceBanner />
 
-      <section className="hero">
+      <section className={`hero ${t.net < 0 ? "down" : "up"}`}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <span className="eyebrow">Net result · {RANGES.find((r) => r[0] === range)[1].toLowerCase()}</span>
           <Seg value={range} onChange={setRange} options={RANGES} />
@@ -75,7 +75,7 @@ export default function Home() {
           <div className="days">
             {week.days.map((d, i) => (
               <div key={d.k} title={`${fmtDay(d.k)}: ${money(d.dep)}`}>
-                <span className={`bar ${d.dep ? "has" : ""} ${d.dep > limit ? "over" : ""} ${d.k === today ? "today" : ""}`} style={{ height: `${Math.max(6, (d.dep / dayMax) * 100)}%` }} />
+                <span className={`bar ${d.dep ? "has" : ""} ${d.dep > limit ? "over" : ""} ${d.k === today ? "today" : ""}`} style={{ height: Math.max(4, Math.round((d.dep / dayMax) * 44)) }} />
                 <small>{"MTWTFSS"[i]}</small>
               </div>
             ))}
@@ -103,7 +103,7 @@ export default function Home() {
               <div className="grow"><div style={{ fontWeight: 600 }}>{app.name}</div><div className="mute" style={{ fontSize: 12.5 }}>{nDep} deposits</div></div>
               <span className={`num ${tone(net)}`} style={{ fontSize: 17 }}>{signed(net)}</span>
             </div>
-            <div className="share" title={`${Math.round((dep / totalDep) * 100)}% of all deposits`}><i style={{ width: `${(dep / totalDep) * 100}%`, background: app.bg === "#23292D" ? "#c6f432" : app.bg }} /></div>
+            <div className="share" title={`${Math.round((dep / totalDep) * 100)}% of all deposits`}><i style={{ width: `${(dep / totalDep) * 100}%`, background: app.bg }} /></div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5 }} className="mute"><span>In <span className="num">{money(dep, 0)}</span></span><span>Out <span className="num">{money(wd, 0)}</span></span></div>
           </Link>
         ))}
