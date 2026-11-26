@@ -1,0 +1,2 @@
+-- Schema as applied to the Supabase project (history seed not included).
+-- See tables: transactions, settings, passkeys, webauthn_challenges; triggers ledger_before_signup / ledger_after_signup.
