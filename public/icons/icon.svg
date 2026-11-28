@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f5b3a"/><stop offset="1" stop-color="#05301e"/></linearGradient>
+<pattern id="mow" width="160" height="1024" patternUnits="userSpaceOnUse"><rect width="80" height="1024" fill="#ffffff" fill-opacity=".05"/></pattern>
+<radialGradient id="vig" cx=".5" cy=".45" r=".75"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient>
+<linearGradient id="slip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eef1ec"/></linearGradient>
+<radialGradient id="ball" cx=".36" cy=".32" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#e9ece9"/><stop offset="1" stop-color="#b9c0bb"/></radialGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#000" flood-opacity=".45"/></filter>
+<clipPath id="bc"><circle cx="0" cy="0" r="170"/></clipPath>
+</defs>
+<rect width="1024" height="1024" fill="url(#bg)"/><rect width="1024" height="1024" fill="url(#mow)"/>
+<circle cx="512" cy="512" r="300" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="10"/><line x1="0" y1="512" x2="1024" y2="512" stroke="#fff" stroke-opacity=".08" stroke-width="10"/>
+<rect width="1024" height="1024" fill="url(#vig)"/>
+<g transform="rotate(-9 470 500)" filter="url(#sh)">
+<path d="M250 210 h400 a26 26 0 0 1 26 26 v548 l-33 -28 -33 28 -33 -28 -33 28 -33 -28 -33 28 -33 -28 -33 28 -33 -28 -33 28 -33 -28 -33 28 -33 -28 v-520 a26 26 0 0 1 26 -26z" fill="url(#slip)"/>
+<rect x="224" y="210" width="452" height="104" rx="26" fill="#ffd21f"/><rect x="224" y="270" width="452" height="44" fill="#ffd21f"/>
+<text x="268" y="282" font-family="Helvetica, Arial, sans-serif" font-weight="800" font-size="64" fill="#1b2a1f" letter-spacing="2">BET SLIP</text>
+<g font-family="Helvetica, Arial, sans-serif" font-weight="700">
+<rect x="268" y="360" width="250" height="26" rx="13" fill="#c9d3cc"/><text x="632" y="388" text-anchor="end" font-size="44" fill="#0e7a4c">1.85</text>
+<rect x="268" y="440" width="210" height="26" rx="13" fill="#c9d3cc"/><text x="632" y="468" text-anchor="end" font-size="44" fill="#0e7a4c">2.10</text>
+<rect x="268" y="520" width="232" height="26" rx="13" fill="#c9d3cc"/><text x="632" y="548" text-anchor="end" font-size="44" fill="#0e7a4c">1.62</text>
+<line x1="268" y1="600" x2="632" y2="600" stroke="#c9d3cc" stroke-width="6" stroke-dasharray="14 12"/>
+<text x="268" y="672" font-size="46" fill="#1b2a1f">RETURN</text><text x="632" y="672" text-anchor="end" font-size="52" fill="#1b2a1f">$62.9</text></g>
+</g>
+<g transform="translate(718 712)" filter="url(#sh)">
+<circle r="170" fill="url(#ball)"/>
+<g clip-path="url(#bc)" fill="#1d2420">
+<path d="M0 -58 L55 -18 L34 47 L-34 47 L-55 -18Z"/>
+<path d="M0 -170 L40 -150 L30 -108 L-30 -108 L-40 -150Z" transform="rotate(0)"/>
+<path d="M0 -170 L40 -150 L30 -108 L-30 -108 L-40 -150Z" transform="rotate(72)"/>
+<path d="M0 -170 L40 -150 L30 -108 L-30 -108 L-40 -150Z" transform="rotate(144)"/>
+<path d="M0 -170 L40 -150 L30 -108 L-30 -108 L-40 -150Z" transform="rotate(216)"/>
+<path d="M0 -170 L40 -150 L30 -108 L-30 -108 L-40 -150Z" transform="rotate(288)"/>
+</g>
+<g clip-path="url(#bc)" stroke="#1d2420" stroke-width="7" fill="none" stroke-opacity=".55">
+<path d="M0 -58 L0 -108"/><path d="M0 -58 L0 -108" transform="rotate(72)"/><path d="M0 -58 L0 -108" transform="rotate(144)"/><path d="M0 -58 L0 -108" transform="rotate(216)"/><path d="M0 -58 L0 -108" transform="rotate(288)"/>
+</g>
+<circle r="170" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="6"/>
+</g>
+<g transform="translate(300 760)" filter="url(#sh)"><circle r="92" fill="#ffd21f"/><path d="M-42 4 L-12 34 L46 -28" fill="none" stroke="#123b25" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>
